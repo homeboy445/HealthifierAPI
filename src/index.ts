@@ -7,6 +7,7 @@ import { userRoute } from './routes/users';
 import { HealthifierSocketManager } from './socketHandler';
 import { contextRouter } from './routes/context';
 import { medicineRouter } from './routes/medicine';
+import { planGeneratorRouter } from './routes/planGenerator';
 
 const app = express();
 const port = process.env.PORT || 3010;
@@ -16,6 +17,7 @@ app.use(bodyParser.json());
 app.use("/users", userRoute);
 app.use("/context", contextRouter);
 app.use("/medicine", medicineRouter);
+app.use("/plan", planGeneratorRouter);
 
 // Routes
 app.get('/', (req: Request, res: Response) => {

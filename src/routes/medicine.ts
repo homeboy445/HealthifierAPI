@@ -16,7 +16,7 @@ medicineRouter.get("/all/:id", async (req, res) => {
     const medicines = await db?.medicineStore.get({ uniqueUserId: id }) || [];
     res.json(medicines);
   } catch (e) {
-    console.log("## error in /medicine/all: ", e);
+    console.log("## error in /medicine/all ", e);
     res.status(500).send("Error in fetching medicine!");
   }
 });

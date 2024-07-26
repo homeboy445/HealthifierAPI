@@ -34,7 +34,16 @@ export interface MedicineObject {
   uniqueUserId: string;
 }
 
+export interface PlanObject {
+  planType: "meal" | "workout";
+  mainPlan: string;
+  uniqueUserId: string;
+  generalisedPlan?: boolean;
+}
+
 export interface HealthQuestionaire {
   q: string;
   a: string;
 }
+
+export type GenericObject = { [props: string]: any };

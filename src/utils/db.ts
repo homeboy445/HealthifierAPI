@@ -1,12 +1,12 @@
 import { Db, MongoClient, ServerApiVersion } from "mongodb";
-import { User, Contexts, FindConfig, ChatObject, MedicineObject } from "../types";
+import { User, Contexts, FindConfig, ChatObject, MedicineObject, PlanObject } from "../types";
 
 // Replace the placeholder with your Atlas connection string
 const uri = process.env.DATABASE_URL as string;
 
-type Collections = "users" | "contexts" | "chatStorage" | "medicine";
+type Collections = "users" | "contexts" | "chatStorage" | "medicine" | "plans";
 
-type CollectionData = User | Contexts | ChatObject | MedicineObject;
+type CollectionData = User | Contexts | ChatObject | MedicineObject | PlanObject;
 
 // console.log("## URI -> ", uri);
 
@@ -101,6 +101,21 @@ class HealthifierDatabase {
     }
   }
 
+  get plans() {
+    return {
+      get: (findConfig: { uniqueUserId: string; planType?: string; }) => {
+        return this.getCollection("plans").find(findConfig).toArray();
+      },
+      set: (planObj: PlanObject) => {
+        return this.insertDocument("plans", planObj);
+      },
+      findAndReplace: async (findConfig: { uniqueUserId: string; planType: string }, planObj: PlanObject) => {
+        const collectionInstance = await this.getCollection("plans");
+        return collectionInstance.findOneAndReplace(findConfig, planObj);
+      }
+    }
+  }
+
   private async addUser(userData: User): Promise<1 | 0> {
     return this.insertDocument("users", userData);
   }
@@ -143,8 +158,7 @@ class HealthifierDatabase {
   ): Promise<T | null> {
     try {
       const { email, uniqueUserId, contextId } = findConfig;
-      console.log("config -> ", findConfig);
-      if (!uniqueUserId || (!email && !contextId)) {
+      if (!uniqueUserId) {
         return null;
       }
       const collection = this.getCollection(collectionName);
