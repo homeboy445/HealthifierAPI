@@ -3,6 +3,7 @@ export interface User {
   email: string;
   passwordHash: string;
   uniqueUserId: string;
+  refreshToken?: string;
 }
 
 export interface Contexts {

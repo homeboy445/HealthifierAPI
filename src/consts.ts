@@ -39,3 +39,24 @@ export const HEALTH_ASSESSMENT_QUESTIONS = [
         text: "Have you experienced any recent changes in your physical or mental well-being?",
     },
 ];
+
+export const HASHING_CONFIG = {
+    SALT_ROUNDS: 10
+};
+
+export const FAILURE_TYPES = {
+    INVALID_INPUT: "Invalid input",
+    OPERATION_FAILED: "Operation failed!",
+    SOMETHING_WENT_WRONG: "Something went wrong!",
+    LOGIN_FAILURES: {
+        USER_DOES_NOT_EXIST: "User does not exist!",
+        INVALID_CREDENTIALS: "Invalid credentials",
+        PASSWORD_DOES_NOT_MATCH: "Password does not match",
+        INVALID_REFRESH_TOKEN: "Invalid refresh token",
+    },
+    REGISTER_FAILURES: {
+        USER_ALREADY_EXISTS: "User already exists!",
+        INVALID_CREDENTIALS: "Invalid credentials",
+    },
+    INTERNAL_ERROR: "An internal error occured!",
+};

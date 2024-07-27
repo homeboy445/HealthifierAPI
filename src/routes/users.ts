@@ -18,8 +18,8 @@ userRoute.get('/all', async (req, res) => {
             res.status(500).send('Database not loaded');
             return;
         }
-        const users = await dbInstance.user.get() || [];
-        res.json(users);
+        const users = await dbInstance.user.getAll() || [];
+        res.json(users.map((user) => { return { email: user.email, name: user.name }; }));
     } catch (e) {
         console.log("error while fetching users", e);
         res.status(400).json(RESPONSE_MESSAGE_CONST.ERROR);

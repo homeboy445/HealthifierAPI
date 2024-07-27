@@ -8,12 +8,20 @@ import { HealthifierSocketManager } from './socketHandler';
 import { contextRouter } from './routes/context';
 import { medicineRouter } from './routes/medicine';
 import { planGeneratorRouter } from './routes/planGenerator';
+import { loginRouter } from './routes/login';
+import { registerRouter } from './routes/register';
+import { expressMiddleWares } from './utils/middleWare';
 
 const app = express();
 const port = process.env.PORT || 3010;
 
-// Middleware
+// Middleware!
 app.use(bodyParser.json());
+app.use(expressMiddleWares.authenticateTokenMiddleWare);
+
+// Route registeration!
+app.use("/login", loginRouter);
+app.use("/register", registerRouter);
 app.use("/users", userRoute);
 app.use("/context", contextRouter);
 app.use("/medicine", medicineRouter);

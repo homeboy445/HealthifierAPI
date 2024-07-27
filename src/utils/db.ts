@@ -8,8 +8,6 @@ type Collections = "users" | "contexts" | "chatStorage" | "medicine" | "plans";
 
 type CollectionData = User | Contexts | ChatObject | MedicineObject | PlanObject;
 
-// console.log("## URI -> ", uri);
-
 class DatabaseRoot {
   private readonly client = new MongoClient(uri, {
     serverApi: {
@@ -59,6 +57,7 @@ class HealthifierDatabase {
   get user() {
     return {
       get: this.getUser.bind(this),
+      getAll: this.getAllUsers.bind(this),
       set: this.addUser.bind(this)
     }
   }
@@ -116,22 +115,25 @@ class HealthifierDatabase {
     }
   }
 
-  private async addUser(userData: User): Promise<1 | 0> {
-    return this.insertDocument("users", userData);
+  private async addUser(userData: User & { update?: boolean }): Promise<1 | 0> {
+    if (userData.update) {
+      delete userData.update;
+      return this.updateDocument("users", userData);
+    } else {
+      return this.insertDocument("users", userData);
+    }
   }
 
   private async storeContext(contextData: Contexts): Promise<1 | 0> {
     return this.insertDocument("contexts", contextData);
   }
 
-  private async getUser(findConfig?: FindConfig): Promise<User | User[] | null> {
-    if (!findConfig) {
-      // for getting all the users!
-      const data = (await this.getCollection("users").find({}).toArray()) as unknown as User[];
-      return data;
-    } else {
-      return this.findDocument<User>("users", findConfig || {});
-    }
+  private async getUser(findConfig: FindConfig): Promise<User | null> {
+    return this.findDocument<User>("users", findConfig || {});
+  }
+
+  private async getAllUsers(): Promise<User[]> {
+    return (this.getCollection("users").find({}).toArray()) as unknown as User[];
   }
 
   private async getContext(findConfig: FindConfig): Promise<Contexts | null> {
@@ -152,13 +154,27 @@ class HealthifierDatabase {
     }
   }
 
+  private async updateDocument<T>(collectionName: Collections, document: CollectionData): Promise<1 | 0> {
+    try {
+      const { uniqueUserId } = document;
+      if (!uniqueUserId) {
+        return 0;
+      }
+      const collection = this.getCollection(collectionName);
+      await collection.updateOne({ uniqueUserId }, { $set: document });
+      return 1;
+    } catch (e) {
+      console.error(`Error in updating document in ${collectionName}: `, e);
+      return 0;
+    }
+  }
+
   private async findDocument<T>(
     collectionName: Collections,
     findConfig: FindConfig
   ): Promise<T | null> {
     try {
-      const { email, uniqueUserId, contextId } = findConfig;
-      if (!uniqueUserId) {
+      if (typeof findConfig !== "object" || (!findConfig.contextId && !findConfig.email && !findConfig.uniqueUserId)) {
         return null;
       }
       const collection = this.getCollection(collectionName);
