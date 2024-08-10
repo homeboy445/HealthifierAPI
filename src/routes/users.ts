@@ -1,5 +1,5 @@
 import express from 'express';
-import { User } from '../types';
+import { ExtendedRequest, User } from '../types';
 import { dbConfig } from '../utils/db';
 import { v4 as uuidV4 } from 'uuid';
 import { RESPONSE_MESSAGE_CONST } from '../consts';
@@ -27,11 +27,10 @@ userRoute.get('/all', async (req, res) => {
 });
 
 // TODO: Add DB closing logic as well!
-userRoute.get('/get/:id', async (req, res) => {
+userRoute.get('/get', async (req, res) => {
     console.log("requested for getting user!");
-    const { id } = req.params;
-    console.log("ID: ", id);
-    if (!id) {
+    const { uniqueUserId } = (req as ExtendedRequest).userData;
+    if (!uniqueUserId) {
         res.status(400).send('Missing id');
         return;
     }
@@ -40,30 +39,30 @@ userRoute.get('/get/:id', async (req, res) => {
         res.status(500).send('Database not loaded');
         return;
     }
-    const user = await dbInstance.user.get({ uniqueUserId: id });
+    const user = await dbInstance.user.get({ uniqueUserId });
     res.json(user);
 });
 
-userRoute.post('/add', async (req, res) => {
-    console.log("requested for adding user!");
-    const { name, email, passwordHash } = req.body as User;
-    if (!name || !email || !passwordHash) {
-        res.status(400).send('Missing fields');
-        return;
-    }
-    const dbInstance = await dbConfig.loadDataBase("healthifier");
-    if (!dbInstance) {
-        res.status(500).send('Database not loaded');
-        return;
-    }
-    const uniqueUserId = uuidV4();
-    const status = await dbInstance.user.set({ name, email, passwordHash, uniqueUserId });
-    if (status == 1) {
-        res.json({ userId: uniqueUserId });
-        console.log("success!");
-    } else {
-        res.status(400).json(RESPONSE_MESSAGE_CONST.FAILURE);
-    }
-});
+// userRoute.post('/add', async (req, res) => {
+//     console.log("requested for adding user!");
+//     const { name, email, passwordHash } = req.body as User;
+//     if (!name || !email || !passwordHash) {
+//         res.status(400).send('Missing fields');
+//         return;
+//     }
+//     const dbInstance = await dbConfig.loadDataBase("healthifier");
+//     if (!dbInstance) {
+//         res.status(500).send('Database not loaded');
+//         return;
+//     }
+//     const uniqueUserId = uuidV4();
+//     const status = await dbInstance.user.set({ name, email, passwordHash, uniqueUserId });
+//     if (status == 1) {
+//         res.json({ userId: uniqueUserId });
+//         console.log("success!");
+//     } else {
+//         res.status(400).json(RESPONSE_MESSAGE_CONST.FAILURE);
+//     }
+// });
 
 export { userRoute };

@@ -1,6 +1,6 @@
 import express from "express";
 import AIManager from "../AIManager";
-import { HealthQuestionaire } from "../types";
+import { ExtendedRequest, HealthQuestionaire } from "../types";
 import { dbConfig } from "../utils/db";
 import { CONTEXT_IDs } from "../consts";
 const contextRouter = express.Router();
@@ -11,7 +11,8 @@ contextRouter.get("/", (req, res) => {
 
 contextRouter.post("/storeInitialContext", async (req, res) => {
     try {
-        const { questions, uniqueUserId } = req.body as { questions: HealthQuestionaire; uniqueUserId: string };
+        const { questions } = req.body as { questions: HealthQuestionaire; uniqueUserId: string };
+        const { uniqueUserId } = (req as ExtendedRequest).userData;
         if (!questions || !Array.isArray(questions)) {
             res.status(400).send("Questions are required!");
             return;

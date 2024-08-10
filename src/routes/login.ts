@@ -9,6 +9,7 @@ const loginRouter = express.Router();
 
 loginRouter.post("/", async (req, res) => {
     const { email, password } = req.body;
+    console.log("login request: ", req.body);
     if (!email || !password) {
         console.log("Invalid credentials");
         return res.status(401).send(FAILURE_TYPES.LOGIN_FAILURES.INVALID_CREDENTIALS);
@@ -64,6 +65,7 @@ loginRouter.post("/refresh", async (req, res) => {
                     console.log("User does not exist");
                     return res.status(401).json(FAILURE_TYPES.LOGIN_FAILURES.USER_DOES_NOT_EXIST);                
                 }
+                console.log("\n@@ User data: ", doesUserExist, " <> ", refreshToken, " \n");
                 if (doesUserExist.refreshToken !== refreshToken) {
                     console.log("Invalid refresh token");
                     return res.status(401).send(FAILURE_TYPES.LOGIN_FAILURES.INVALID_REFRESH_TOKEN);
@@ -71,6 +73,7 @@ loginRouter.post("/refresh", async (req, res) => {
                 const payload = { email: doesUserExist.email, name: doesUserExist.name, uniqueUserId: doesUserExist.uniqueUserId };
                 const accessToken = JWTGenerator.generateAccessToken(payload);
                 const newRefreshToken = JWTGenerator.generateRefreshToken(payload);
+                await db?.user.set({ ...doesUserExist, refreshToken: newRefreshToken, update: true });
                 res.json({ accessToken, refreshToken: newRefreshToken });
             } catch (e) {
                 console.log("Error while refreshing token (in callback): ", e);

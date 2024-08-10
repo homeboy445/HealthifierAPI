@@ -4,6 +4,7 @@ import AIManager from "./AIManager";
 import { dbConfig } from "./utils/db";
 import { CONTEXT_IDs } from "./consts";
 import { MICRO_PROMPTS } from "./utils/prompts";
+import JWTGenerator from "./utils/jwtUtils";
 
 export class HealthifierSocketManager {
   server: unknown;
@@ -23,6 +24,9 @@ export class HealthifierSocketManager {
       RESPONSE: "health_chat.server.response",
       END_CHAT: "health_chat.server.end_chat",
     },
+    AUTH: {
+      UNAUTHORIZED: "UNAUTHORIZED",
+    }
   };
 
   constructor(server: unknown) {
@@ -44,8 +48,18 @@ export class HealthifierSocketManager {
       },
     });
     io.on("connection", (socket) => {
-      const uniqueUserId = (socket.handshake?.query?.uniqueUserId || "") as string;
-      console.log("a user connected: ", uniqueUserId);
+      const { accessToken } = (socket.handshake?.query || {});
+      console.log("AccessToken received: ", accessToken);
+      const tokenVerificationResult = JWTGenerator.verifyAccessToken(accessToken);
+      console.log("a user connected!");
+      if (!tokenVerificationResult) {
+        socket.emit(this.channelStore.AUTH.UNAUTHORIZED, "Invalid token!");
+        socket.on("disconnect", () => {
+          console.log("disconnecting the unauthorised user!");
+        });
+        return;
+      }
+      (socket as any).auth = tokenVerificationResult;
       for (let idx = 0; idx < this.connectionList.length; idx++) {
         const { channel, callback } = this.connectionList[idx];
         socket.on(channel, (...args: any) => {
@@ -53,8 +67,8 @@ export class HealthifierSocketManager {
         });
       }
       socket.on("disconnect", () => {
-        console.log("user disconnected: ", uniqueUserId);
-        this.storeContextAndResetChatInstance(uniqueUserId);
+        console.log("user disconnected!");
+        this.storeContextAndResetChatInstance("change-this!");
       });
     });
     this.attachHealthChatChannel();
@@ -64,12 +78,14 @@ export class HealthifierSocketManager {
     this.on(
       this.channelStore.HEALTH_CHAT.RESPONSE,
       async (socket: Socket, data: any) => {
-        const { message, uniqueUserId, messageReceivedTime } = data || {};
-        console.log("## message received: ", message);
+        const { message, ts } = data || {};
+        // console.log("## message received: ", message);
+        const { uniqueUserId } = (socket as any).auth;
         if (!uniqueUserId) {
           console.log("## uniqueUserId not found!");
           return;
         }
+        // console.log("Chatting with -> -> ", uniqueUserId);
         const db = await dbConfig.loadDataBase();
         if (!this.healthChatMaintainer[uniqueUserId]) {
           const chatList = await db?.chat.getAllSortedByTimeStamp(uniqueUserId);
@@ -78,6 +94,7 @@ export class HealthifierSocketManager {
               return `User asked: ${a}, AI answered: ${b}`;
             } return "";
           });
+          console.log(">> ", conversationHistory);
           let initializingPrompt = `${MICRO_PROMPTS.ENSURE_HEALTH_CHAT}.`;
           if (conversationHistory && conversationHistory.length > 0) {
             initializingPrompt += ` Here is the conversation history: ${conversationHistory.join(" ")}. Take its reference to address the user's queries.`;
@@ -87,23 +104,26 @@ export class HealthifierSocketManager {
           this.healthChatMaintainer[uniqueUserId] = { ...chatInstance };
         }
         const response = await this.healthChatMaintainer[uniqueUserId].sendMessage(
-          `The user asked: ${message}. Answer this in a casual chat format. (refuse if not health related & keep the response short)`
+          `The user asked: ${message}. Answer this in a casual chat format. (refuse if not health related & keep the response short and be nice!)`
         );
         const chatData = {
           a: message,
           b: response,
-          ta: messageReceivedTime || new Date().toISOString(),
+          ta: ts || new Date().toISOString(),
           tb: new Date().toISOString(),
           uniqueUserId
         };
+        // console.log("sending chat data: ", chatData);
         db?.chat.set(chatData);
         socket.emit(this.channelStore.HEALTH_CHAT.REQUEST, {
           message: response,
+          ts: chatData.tb,
+          sender: "ai"
         });
       }
     );
     this.on(this.channelStore.HEALTH_CHAT.END_CHAT, async (socket: Socket, data: any) => {
-      const { uniqueUserId } = data || {};
+      const { uniqueUserId } = (socket as any).auth || {};
       this.storeContextAndResetChatInstance(uniqueUserId);
     });
   }

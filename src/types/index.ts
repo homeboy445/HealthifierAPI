@@ -1,3 +1,9 @@
+import { Request } from "express";
+
+export interface ExtendedRequest extends Request {
+  userData: User;
+}
+
 export interface User {
   name: string;
   email: string;
@@ -20,17 +26,23 @@ export interface FindConfig {
 }
 
 export interface ChatObject {
-  a: string;
-  b: string;
+  a: string; // Client
+  b: string; // AI
   ta: string;
   tb: string;
   uniqueUserId: string;
 }
 
+export interface ChatData {
+  message: string;
+  ts: string;
+  sender: "user" | "ai";
+}
+
 export interface MedicineObject {
   name: string;
   dosage: string;
-  time: { hr: number; mn: number };
+  time: { day: string, hour: string };
   usage: string;
   uniqueUserId: string;
 }

@@ -59,4 +59,7 @@ export const FAILURE_TYPES = {
         INVALID_CREDENTIALS: "Invalid credentials",
     },
     INTERNAL_ERROR: "An internal error occured!",
+    CHAT_FAILURES: {
+        ERROR_FETCH_CHAT: "Error while fetching chats!",
+    }
 };

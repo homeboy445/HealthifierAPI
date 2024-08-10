@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
+import cors from "cors";
 import { dbConfig } from './utils/db';
 import { userRoute } from './routes/users';
 import { HealthifierSocketManager } from './socketHandler';
@@ -11,11 +12,13 @@ import { planGeneratorRouter } from './routes/planGenerator';
 import { loginRouter } from './routes/login';
 import { registerRouter } from './routes/register';
 import { expressMiddleWares } from './utils/middleWare';
+import { chatRoute } from './routes/chat';
 
 const app = express();
 const port = process.env.PORT || 3010;
 
 // Middleware!
+app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE"] }));
 app.use(bodyParser.json());
 app.use(expressMiddleWares.authenticateTokenMiddleWare);
 
@@ -23,7 +26,8 @@ app.use(expressMiddleWares.authenticateTokenMiddleWare);
 app.use("/login", loginRouter);
 app.use("/register", registerRouter);
 app.use("/users", userRoute);
-app.use("/context", contextRouter);
+// app.use("/context", contextRouter);
+app.use("/chats", chatRoute);
 app.use("/medicine", medicineRouter);
 app.use("/plan", planGeneratorRouter);
 

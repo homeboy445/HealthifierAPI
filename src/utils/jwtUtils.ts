@@ -42,7 +42,12 @@ const JWTGenerator = {
   verifyAccessToken: (token: any) => {
     // Add type annotation for 'token'
     JWTGenerator.throwErrorIfSecretKeyDoNotExist();
-    return jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET_KEY || "");
+    try {
+      return jwt.verify(token, process.env.JWT_ACCESS_TOKEN_SECRET_KEY || "");
+    } catch (e) {
+      console.log("## error while verifying access token: ", e);
+      return null;
+    }
   },
 
   verifyRefreshToken: (token: any) => {
