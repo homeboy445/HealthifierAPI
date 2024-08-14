@@ -6,7 +6,7 @@ export const expressMiddleWares = {
   authenticateTokenMiddleWare(req: Request, res: Response, next: Function) {
     try {
       if (/(login|register|health)/.test(req.path) || req.path === "/") {
-        console.log("Skipping authentication for login/register/health routes!");
+        console.log("Skipping authentication for login/register/health routes! ", req.path);
         return next();
       }
       const authHeader = req.headers['authorization'] || "";
