@@ -147,6 +147,14 @@ class HealthifierDatabase {
       set: (medicineObj: MedicineObject) => {
         return this.insertDocument("medicine", medicineObj);
       },
+      del: async (medicineObj: { uniqueUserId: string; medicineId: string }) => {
+        const collectionInstance = await this.getCollection("medicine");
+        console.log("deleteRequest! ", medicineObj);
+        return collectionInstance.deleteOne({
+          uniqueUserId: medicineObj.uniqueUserId,
+          medicineId: medicineObj.medicineId,
+        });
+      }
     };
   }
 

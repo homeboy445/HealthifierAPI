@@ -38,7 +38,7 @@ export class HealthifierSocketManager {
   }
 
   initializeSocket() {
-    console.log("initializing the socket!");
+    // console.log("initializing the socket!");
     const io = new Server(this.server as any, {
       cors: {
         origin: "*", // Allowed origins
@@ -49,7 +49,7 @@ export class HealthifierSocketManager {
     });
     io.on("connection", (socket) => {
       const { accessToken } = (socket.handshake?.query || {});
-      console.log("AccessToken received: ", accessToken);
+      // console.log("AccessToken received: ", accessToken);
       const tokenVerificationResult = JWTGenerator.verifyAccessToken(accessToken);
       console.log("a user connected!");
       if (!tokenVerificationResult) {
@@ -140,14 +140,14 @@ export class HealthifierSocketManager {
           contextId: CONTEXT_IDs.HEALTH_CHAT,
           contextData: chatContext,
         };
-        console.log("## storing contextual data!");
+        // console.log("## storing contextual data!");
         const response = await db?.context.get(
           { uniqueUserId, contextId: CONTEXT_IDs.HEALTH_CHAT });
         if (response && response.contextData) {
           try {
             const aiResponse = await AIManager.getResponseFromGemini(`Make sense of these two texts: 1:${dataObj.contextData}, 2:${response.contextData}. And keep the response as short as possible (might as well keep them as keywords, just make sure it is understandable for future reference).`);
             dataObj.contextData = aiResponse;
-            console.log("## Saving already present context data: ", aiResponse);
+            // console.log("## Saving already present context data: ", aiResponse);
           } catch (e) {}
         }
         await db?.context.set(dataObj);

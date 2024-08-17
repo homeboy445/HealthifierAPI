@@ -45,6 +45,7 @@ export interface MedicineObject {
   time: { day: string, hour: string };
   usage: string;
   uniqueUserId: string;
+  medicineId: string;
 }
 
 export interface PlanObject {

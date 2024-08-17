@@ -19,9 +19,6 @@ const JWTGenerator = {
   }) => {
     // Add type annotation for 'user'
     JWTGenerator.throwErrorIfSecretKeyDoNotExist();
-    console.log(
-      "generateAccessToken -> for data: ", UserData
-    );
     return jwt.sign(UserData, process.env.JWT_ACCESS_TOKEN_SECRET_KEY || "", {
       expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRY,
     });

@@ -65,7 +65,7 @@ loginRouter.post("/refresh", async (req, res) => {
                     console.log("User does not exist");
                     return res.status(401).json(FAILURE_TYPES.LOGIN_FAILURES.USER_DOES_NOT_EXIST);                
                 }
-                console.log("\n@@ User data: ", doesUserExist, " <> ", refreshToken, " \n");
+                // console.log("\n@@ User data: ", doesUserExist, " <> ", refreshToken, " \n");
                 if (doesUserExist.refreshToken !== refreshToken) {
                     console.log("Invalid refresh token");
                     return res.status(401).send(FAILURE_TYPES.LOGIN_FAILURES.INVALID_REFRESH_TOKEN);
